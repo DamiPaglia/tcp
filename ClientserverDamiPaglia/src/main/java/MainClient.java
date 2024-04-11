@@ -8,9 +8,9 @@
  * @author Studente
  */
 public class MainClient {
-    public static void main(String[]args){
-        Client c= new Client("damiano","blu");
-        c.connetti("127.0.0.0", 2000);
+    public static void main(String[] args) {
+        Client client= new Client("Damiano","blu");
+        client.connetti("127.0.0.1",2000);
+        client.start();
     }
-    
 }

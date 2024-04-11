@@ -12,55 +12,86 @@ import java.net.Socket;
  *
  * @author Studente
  */
-public class Server {
-    private  ServerSocket serverSocket;
-    private Socket clientSocket;
-    private int porta;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.BindException;
+import java.io.*;
+
+
+public class Server extends Thread {
+    private Socket Socket;
+    private int nPorta;
+    private int numeroClient;
+    private  boolean connessione = true;
+    String Datiricevuti;
     
-    public Server(int porta){
-        this.porta =porta;
-        try{
-           serverSocket = new ServerSocket(porta);
-           System.out.println("il server è in ascolto");
-        }catch(IOException e){
-        System.err.println("errore nella fase d' ascolto...");
+      public Server(int porta, Socket socket, int n) {
+        this.nPorta=nPorta;
+        this.Socket = socket;
+        this.numeroClient = n;
+    }
+     
+    //avvio dei server
+    @Override  
+    public void run() {
+        while(connessione) {
+    leggi();
+    scrivi();
+        }
+    chiudi();    
+    } 
+        
+    
+    public void leggi() {
+        try {
+            InputStream inputStream = Socket.getInputStream();
+            BufferedReader in = new BufferedReader(new InputStreamReader(inputStream));
+            Datiricevuti = in.readLine();
+                       
+            System.out.println("Dati sono stati ricevuti dal client numero " + numeroClient + ": " + Datiricevuti );
             
-        }
-
-    }
-    public Socket attendi(){
-        
-        try{
-            if(serverSocket != null){
-     clientSocket = serverSocket.accept();
-    System.out.println("server 2 stabilita con il client...");
+            //metodo per chiudere la comunicazione
+            if(Datiricevuti.equals("STOP")) {
+            connessione = false;
             }
-    }catch(IOException e){
-    System.err.println("errore nella connesione...");
+        } catch (IOException e) {
+            System.err.println("errore nella ricreazione dei dati dal client");
+            chiudi();
+            connessione = false;
+        } 
     }
-    return clientSocket;
-}
-    
-        
-    
-     public void scrivi(){
-        
-    }
-    public void leggi(){
 
-    }
-    public void chiudi(){
-        try{
-             serverSocket.close();
-        }catch(IOException e){
-            System.err.println("chiusura non riuscita");
+    
+    public void scrivi() {
+    try {
+      OutputStream outputStream = Socket.getOutputStream();
+      PrintWriter out = new PrintWriter(outputStream, true);
+       if (connessione == true) {
+           
+            out.println("dati inviati correttamente; sei il client numero " + numeroClient);
+            
+      } else {
+         out.println("chiusura connessione in corso...");
+      }       
+    } catch (IOException e) {
+            System.err.println("errore nell'invio della risposta");
+            System.err.println(e);
         }
-       
     }
-    public void termina(){
-        
+
+    public void chiudi() {
+        try {           
+            System.out.println("chiusura connessione del client numero " + numeroClient);
+            Socket.close(); 
+        } catch (IOException e) {
+            System.err.println(e);
+        } 
+      
     }
+
+      
+      
 }
-
-
-
